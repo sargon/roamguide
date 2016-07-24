@@ -1,0 +1,56 @@
+#!/bin/sh
+
+dev=client0
+freq=-75
+kickmax=2
+
+wifi_kick(){
+  local dev="$1"
+  local mac="$2"
+  local tq="$3"
+  echo kicking ${mac} ${tq} ${dev}
+  ubus call hostapd.${dev} del_client '{ "addr" : "'${mac}'", "reason" : "assoc toomany", "ban_time" : 10000 }'
+}
+
+get_count(){
+  local mac="$1"
+  if [ -e /tmp/client-${mac} ] ; then
+    touch /tmp/client-${mac}
+    cat /tmp/client-${mac}
+  else
+     echo 0
+  fi
+}
+
+inc_count(){
+  local mac="$1"
+  local count=$(get_count "${mac}")
+  count=$(expr $count + 1)
+  echo $count > /tmp/client-${mac}
+}
+
+rm_count(){
+  local mac="$1"
+  if [ -e /tmp/client-${mac} ] ; then
+    rm /tmp/client-${mac}
+  fi
+}
+
+for mac in $(iw dev client0 station dump | grep Station | xargs -n1 | grep ; do
+  mac_tq=$(iw dev client0 station get ${mac} | grep "signal avg" | xargs | cut -d' ' -f 3)
+  if [ ${mac_tq} -le ${freq} ]; then
+    mac_count=$(get_count "${mac}")
+    if [ $mac_count -le $kickmax ]; then
+      inc_count $mac
+      wifi_kick "${dev}" "${mac}" "${mac_tq}"
+    fi
+  else
+    rm_count "${mac}"
+  fi
+done
+
+now=$(date +%s)
+for file in $(find /tmp -name "client-*"); do
+  filedate=$(date +%s -r $file)
+  [ $(expr $now - ${filedate}) -gt 120 ] && rm $file
+done
