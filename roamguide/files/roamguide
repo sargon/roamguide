@@ -1,18 +1,22 @@
 #!/bin/sh
 
-dev=client0
-freq=-75
+. /lib/functions.sh
+
+dev=${1:-client0}
+signal="-60 -77 -85"
 kickmax=2
 
 wifi_kick(){
   local dev="$1"
   local mac="$2"
   local tq="$3"
-  echo kicking ${mac} ${tq} ${dev}
-  ubus call hostapd.${dev} del_client '{ "addr" : "'${mac}'", "reason" : "assoc toomany", "ban_time" : 10000 }'
+  local num="$4"
+  local bantime=$(expr 2000 + $num \* 3000)
+  logger -t roamguide "${dev}: ban(${num}) ${mac} ${tq}dBm for ${bantime}ms"
+  ubus call hostapd.${dev} del_client '{ "addr" : "'${mac}'", "reason" : "assoc toomany", "ban_time" : '${bantime}' }'
 }
 
-get_count(){
+count_get(){
   local mac="$1"
   if [ -e /tmp/client-${mac} ] ; then
     touch /tmp/client-${mac}
@@ -22,35 +26,69 @@ get_count(){
   fi
 }
 
-inc_count(){
+count_inc(){
   local mac="$1"
-  local count=$(get_count "${mac}")
+  local count=$(count_get "${mac}")
   count=$(expr $count + 1)
   echo $count > /tmp/client-${mac}
+  echo $count
 }
 
-rm_count(){
+count_dec(){
+  local mac="$1"
+  local count=$(count_get "${mac}")
+  count=$(expr $count - 1)
+  if [ $count -le 0 ] ; then
+    count_rm "${mac}"
+  else 
+    echo $count > /tmp/client-${mac}
+  fi
+}
+
+count_rm(){
   local mac="$1"
   if [ -e /tmp/client-${mac} ] ; then
+    logger -t roamguide "forget ${mac}"
     rm /tmp/client-${mac}
   fi
 }
 
-for mac in $(iw dev client0 station dump | grep Station | xargs -n1 | grep ; do
-  mac_tq=$(iw dev client0 station get ${mac} | grep "signal avg" | xargs | cut -d' ' -f 3)
-  if [ ${mac_tq} -le ${freq} ]; then
-    mac_count=$(get_count "${mac}")
-    if [ $mac_count -le $kickmax ]; then
-      inc_count $mac
-      wifi_kick "${dev}" "${mac}" "${mac_tq}"
+count_cleanup() {
+  local now=$(date +%s)
+  for file in $(find /tmp -maxdepth 1 -name "client-*"); do
+    filedate=$(date +%s -r $file)
+    [ $(expr $now - ${filedate}) -gt 120 ] && rm $file
+  done
+}
+
+client_macs() {
+  local dev="$1"
+  iw dev "${dev}" station dump | grep Station | sed -e 's/^[^ ]\+ \([0-9a-z:]*\) .*/\1/' 
+}
+
+client_tq() {
+  local dev="$1"
+  local mac="$2"
+  iw dev "${dev}" station get "${mac}" | grep "signal avg" | xargs | cut -d' ' -f 3
+}
+
+
+for mac in $(client_macs "${dev}") ; do
+  tq=$(client_tq "${dev}" "${mac}")
+  level=1
+  hit=0
+  for roam_tq in $signal; do
+    if [ ${tq} -le ${roam_tq} ]; then
+      mac_count=$(count_get "${mac}")
+      if [ $mac_count -lt $level ] ; then
+        count_inc ${mac}
+        wifi_kick "${dev}" "${mac}" "${tq}" "${mac_count}"
+      fi 
+      hit=1
+      break
     fi
-  else
-    rm_count "${mac}"
-  fi
+    level=$(expr $level + 1)
+  done
 done
 
-now=$(date +%s)
-for file in $(find /tmp -name "client-*"); do
-  filedate=$(date +%s -r $file)
-  [ $(expr $now - ${filedate}) -gt 120 ] && rm $file
-done
+count_cleanup
