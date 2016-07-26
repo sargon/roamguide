@@ -24,13 +24,11 @@ count_get(){
 }
 
 count_inc(){
-  local count=$(count_get $@)
-  expr $count + 1 > $(count_file $@)
+  expr $(count_get $@) + 1 > $(count_file $@)
 }
 
 count_dec(){
-  local count=$(count_get $@)
-  count=$(expr $count - 1) > $(count_file $@)
+  $(expr $(count_get $@) - 1) > $(count_file $@)
 }
 
 count_rm(){
@@ -87,7 +85,7 @@ roamlevel(){
     if [ $mac_count -lt $level ] ; then
       count_inc ${device} ${mac}
       local bantime=$(expr $bantime_base + $(expr $mac_count \* $mac_count) \* $bantime_factor)
-      logger -t roamguide "${dev}: ban ${mac} ${tq}dBm for ${bantime}ms"
+      logger -t roamguide "${device}: ban ${mac} ${tq}dBm for ${bantime}ms"
       wifi_kick "${device}" "${mac}" "${bantime}"
       break
     fi 
