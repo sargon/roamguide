@@ -7,4 +7,5 @@ config roamguide
    option bantime_base '500'    # on the first level ban for 500ms
    option bantime_factor '2375' # on the second one for 2775ms,
                                 # and in the final 10000ms
+   option forget_time '600' # Forget about a client after 10s
    option enabled '0' # set to '1' to enable this profile
