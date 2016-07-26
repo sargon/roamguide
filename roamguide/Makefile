@@ -27,7 +27,7 @@ define Build/Compile
 endef
 
 define Package/roamguide/install
-	$(CP) ./files/* $(1)/usr/bin/
+	$(CP) ./files/* $(1)
 endef
 
 $(eval $(call BuildPackage,roamguide))
