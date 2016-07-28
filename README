@@ -1,7 +1,7 @@
 ROAM-Guide
 ----------
 
-Helps your clients to search for a better AP and to have an nice roaming experience.
+Helps your clients to search for a better AP and to have a nice roaming experience.
 
 The roaming guide runs as a cronjob every minute on your ap and verifies that clients
 have an acceptable TQ towards the AP. If that isn't the case it will deauth the client
@@ -9,18 +9,18 @@ by stating that the AP is full, enabling the client to look for an alternative A
 
 This is happening in three definable stages depending on the TQ of the client.
 When a client has decided to come back after the ban-time it will not be bothered
-again unless it emerge to the next TQ level or it has been kicked $stage times.
-For every stage the client is guide the ban time will be increased. So by default
+again unless it depletes to the next TQ level or it has been kicked $stage times.
+For every stage the client is guided, the ban time will be increased. So by default
 the first stage has a bantime of 500ms, the second 2775ms and the third 10000ms.
 
 When a client is away for some definable time or is below the first stages TQ,
-we will forget about him, and re-enable the guiding.
+it will be forgotten, and the guiding will be re-enable.
 
 Configuration
 -------------
 
 In '/etc/config/roamguide' the following default configuration is available,
-to activate you need to set enabled to '1'.
+to activate it you need to set enabled to '1'.
 
     config roamguide
        option device "client0"        # wireless AP device we like to guide
@@ -37,3 +37,17 @@ You also need to create a cronjob calling /usr/bin/roamguide once a minute.
 So for example by placing the following line in /etc/crontabs/root:
 
     * * * * * /usr/bin/roamguide
+
+If you want to execute this with one shell call you can use:
+
+     ssh <router ip> 'uci set roamguide.@roamguide[0].enabled="1"; uci commit roamguide; grep -q /usr/bin/roamguide /etc/crontabs/root || echo "* * * * * /usr/bin/roamguide" >> /etc/crontabs/root; echo done'
+
+If you want to make roamguide more reactive (but also stress your device) you can add some more cron jobs with sleep timers:
+
+     ssh <router ip> 'echo "* * * * * sleep 20 & /usr/bin/roamguide" >> /etc/crontabs/root; echo done'
+     ssh <router ip> 'echo "* * * * * sleep 40 & /usr/bin/roamguide" >> /etc/crontabs/root; echo done'
+
+This will show you the stats, where you are connected on your client:
+
+    watch -d -n0,5 iw dev $(ip -o -4 route show to default | awk '{print $5}') station dump
+
