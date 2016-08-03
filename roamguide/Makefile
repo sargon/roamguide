@@ -11,7 +11,7 @@ include $(GLUONDIR)/include/package.mk
 define Package/roamguide
   SECTION:=net
   CATEGORY:=Network
-  DEPENDS:=
+  DEPENDS:=+micrond
   TITLE:=Helps your client to search for a better AP and have a nice roam experience.
 endef
 
