@@ -31,21 +31,24 @@ to activate it you need to set enabled to '1'.
        option bantime_factor '2375'   # on the second one for 2775ms,
                                       # and in the final 10000ms
        option forget_time '600'       # Forget about a client after 10s
-       option enabled '0'             # set to '1' to enable this profile
+       option enabled '1'             # set to '0' to disable this profile
 
-You also need to create a cronjob calling /usr/bin/roamguide once a minute.
-So for example by placing the following line in /etc/crontabs/root:
+This module creates a cronjob calling /usr/bin/roamguide once a minute.
+If you want to make roamguide more reactive (but also stress your device) you can add some more cron jobs with sleep timers in /etc/crontabs/root:
 
-    * * * * * /usr/bin/roamguide
+    * * * * * sleep 20 & /usr/bin/roamguide
+    * * * * * sleep 40 & /usr/bin/roamguide
 
-If you want to execute this with one shell call you can use:
+If you want to disable this with one shell call you can use:
 
-     ssh <router ip> 'uci set roamguide.@roamguide[0].enabled="1"; uci commit roamguide; grep -q /usr/bin/roamguide /etc/crontabs/root || echo "* * * * * /usr/bin/roamguide" >> /etc/crontabs/root; echo done'
+     ssh <router ip> 'uci set roamguide.@roamguide[0].enabled="0"; uci commit roamguide && echo done'
 
-If you want to make roamguide more reactive (but also stress your device) you can add some more cron jobs with sleep timers:
+If you want to make roamguide more reactive:
 
-     ssh <router ip> 'echo "* * * * * sleep 20 & /usr/bin/roamguide" >> /etc/crontabs/root; echo done'
-     ssh <router ip> 'echo "* * * * * sleep 40 & /usr/bin/roamguide" >> /etc/crontabs/root; echo done'
+     ssh <router ip> 'grep -q "sleep 20" /etc/crontabs/root || echo "* * * * * sleep 20 & /usr/bin/roamguide" >> /etc/crontabs/root'
+     ssh <router ip> 'grep -q "sleep 40" /etc/crontabs/root || echo "* * * * * sleep 40 & /usr/bin/roamguide" >> /etc/crontabs/root'
+
+### Testing tools
 
 This will show you the stats, where you are connected on your client:
 
