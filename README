@@ -31,10 +31,10 @@ to activate it you need to set enabled to '1'.
        option bantime_factor '2375'   # on the second one for 2775ms,
                                       # and in the final 10000ms
        option forget_time '600'       # Forget about a client after 10s
-       option enabled '0'             # set to '1' to enable this profile
+       option enabled '0'             # set to '1' to ensable this profile
 
-You also need to create a cronjob calling /usr/bin/roamguide once a minute.
-So for example by placing the following line in /etc/crontabs/root:
+This module creates a cronjob calling /usr/bin/roamguide once a minute.
+If you want to make roamguide more reactive (but also stress your device) you can add some more cron jobs with sleep timers in /usr/lib/micron.d/root:
 
     * * * * * /usr/bin/roamguide
 
@@ -44,10 +44,12 @@ If you want to execute this with one shell call you can use:
 
 If you want to make roamguide more reactive (but also stress your device) you can add some more cron jobs with sleep timers:
 
-     ssh <router ip> 'echo "* * * * * sleep 20 & /usr/bin/roamguide" >> /etc/crontabs/root; echo done'
-     ssh <router ip> 'echo "* * * * * sleep 40 & /usr/bin/roamguide" >> /etc/crontabs/root; echo done'
+     ssh <router> 'grep -q "sleep 20" /usr/lib/micron.d/root || echo "* * * * * sleep 20 & /usr/bin/roamguide" >> /usr/lib/micron.d/root'
+     ssh <router> 'grep -q "sleep 40" /usr/lib/micron.d/root || echo "* * * * * sleep 40 & /usr/bin/roamguide" >> /usr/lib/micron.d/root'
 
-This will show you the stats, where you are connected on your client:
+### Testing tools
+
+This will show you the stats, where you are connected to on your client:
 
     watch -d -n0,5 iw dev $(ip -o -4 route show to default | awk '{print $5}') station dump
 
