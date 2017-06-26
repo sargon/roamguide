@@ -41,8 +41,9 @@ count_rm(){
 
 count_cleanup() {
   local device="$1" ; shift
-  for file in $(find /tmp -maxdepth 1 -name "roam-${1}-*" -type f ); do
-    [ $(expr $(date +%s) - $(date +%s -r $file)) -gt ${forget_time} ] && rm $file
+  local current_time=$(date +%s)
+  for file in $(find /tmp -maxdepth 1 -name "roam-${device}-*" -type f ); do
+    [ "$(expr "$current_time" - $(date +%s -r $file))" -gt "$forget_time" ] && rm $file
   done
 }
 
