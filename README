@@ -45,8 +45,8 @@ If you want to disable this with one shell call you can use:
 
 If you want to make roamguide more reactive:
 
-     ssh <router> 'grep -q "sleep 20" /usr/lib/micron.d/root || echo "* * * * * sleep 20 & /usr/bin/roamguide" >> /usr/lib/micron.d/root'
-     ssh <router> 'grep -q "sleep 40" /usr/lib/micron.d/root || echo "* * * * * sleep 40 & /usr/bin/roamguide" >> /usr/lib/micron.d/root'
+     ssh <router> 'grep -q "sleep 20" /usr/lib/micron.d/roamguide || echo -e "\n* * * * * sleep 20 & /usr/bin/roamguide" >> /usr/lib/micron.d/roamguide'
+     ssh <router> 'grep -q "sleep 40" /usr/lib/micron.d/roamguide || echo "* * * * * sleep 40 & /usr/bin/roamguide" >> /usr/lib/micron.d/roamguide'
 
 ### Testing tools
 
