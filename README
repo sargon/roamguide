@@ -39,14 +39,20 @@ If you want to make roamguide more reactive (but also stress your device) you ca
     * * * * * sleep 20 & /usr/bin/roamguide
     * * * * * sleep 40 & /usr/bin/roamguide
 
-If you want to disable this with one shell call you can use:
+### Configure your node with ssh calls
 
-     ssh <router ip> 'uci set roamguide.@roamguide[0].enabled="0"; uci commit roamguide && echo done'
+Disable roamguide:
 
-If you want to make roamguide more reactive:
+     ssh <router> 'uci set roamguide.@roamguide[0].enabled="0"; uci commit roamguide && echo done'
+
+Make roamguide more reactive:
 
      ssh <router> 'grep -q "sleep 20" /usr/lib/micron.d/roamguide || echo -e "\n* * * * * sleep 20 & /usr/bin/roamguide" >> /usr/lib/micron.d/roamguide'
      ssh <router> 'grep -q "sleep 40" /usr/lib/micron.d/roamguide || echo "* * * * * sleep 40 & /usr/bin/roamguide" >> /usr/lib/micron.d/roamguide'
+
+Configure different boundaries:
+
+    ssh <router> 'uci set roamguide.@roamguide[0].signal='-60'; uci add_list roamguide.@roamguide[0].signal='-70'; uci add_list roamguide.@roamguide[0].signal='-80'; uci commit roamguide && echo done'
 
 ### Testing tools
 
