@@ -36,8 +36,8 @@ to activate it you need to set enabled to '1'.
 This module creates a cronjob calling /usr/bin/roamguide once a minute.
 If you want to make roamguide more reactive (but also stress your device) you can add some more cron jobs with sleep timers in /usr/lib/micron.d/root:
 
-    * * * * * sleep 20 & /usr/bin/roamguide
-    * * * * * sleep 40 & /usr/bin/roamguide
+    * * * * * sleep 20 && /usr/bin/roamguide
+    * * * * * sleep 40 && /usr/bin/roamguide
 
 ### Configure your node with ssh calls
 
@@ -47,8 +47,8 @@ Disable roamguide:
 
 Make roamguide more reactive:
 
-     ssh <router> 'grep -q "sleep 20" /usr/lib/micron.d/roamguide || echo -e "\n* * * * * sleep 20 & /usr/bin/roamguide" >> /usr/lib/micron.d/roamguide'
-     ssh <router> 'grep -q "sleep 40" /usr/lib/micron.d/roamguide || echo "* * * * * sleep 40 & /usr/bin/roamguide" >> /usr/lib/micron.d/roamguide'
+     ssh <router> 'grep -q "sleep 20" /usr/lib/micron.d/roamguide || echo -e "\n* * * * * sleep 20 && /usr/bin/roamguide" >> /usr/lib/micron.d/roamguide'
+     ssh <router> 'grep -q "sleep 40" /usr/lib/micron.d/roamguide || echo "* * * * * sleep 40 && /usr/bin/roamguide" >> /usr/lib/micron.d/roamguide'
      ssh <router> '/etc/init.d/micrond restart'
 
 Configure different boundaries:
